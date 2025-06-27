@@ -99,6 +99,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
 
     console.log('Uygun parçacık sayısı:', uygunParcaciklar.length);
+    
+    // Debug: En yüksek skorları göster
+    if (benzerParcaciklar.length > 0) {
+      console.log('En yüksek benzerlik skorları:', 
+        benzerParcaciklar.slice(0, 3).map(p => ({ 
+          skor: p.skor.toFixed(3), 
+          metinBasi: p.metin.substring(0, 50) + '...' 
+        }))
+      );
+    }
 
     if (uygunParcaciklar.length === 0) {
       return NextResponse.json({
