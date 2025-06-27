@@ -141,9 +141,6 @@ export default function AnaSayfa() {
                 <MessageCircle className="h-8 w-8 text-blue-600" />
                 Döküman Sohbet
               </h1>
-              <p className="text-sm text-slate-600 mt-1">
-                Gemini 2.0 ile güçlendirilmiş akıllı döküman analizi
-              </p>
             </div>
 
             {/* Durum Göstergesi */}
