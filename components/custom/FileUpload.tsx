@@ -35,6 +35,11 @@ export function FileUpload({
 
       const dosya = dosyalar[0];
       setHataMesaji(null);
+      
+      // Input'u hemen temizle ki aynı dosya tekrar seçilebilsin
+      if (dosyaInputRef.current) {
+        dosyaInputRef.current.value = '';
+      }
 
       // Dosya türü kontrolü
       if (!desteklenenDosyaTuruMu(dosya.type)) {
@@ -90,10 +95,6 @@ export function FileUpload({
         );
       } finally {
         setYuklemeDevamEdiyor(false);
-        // Input'u temizle
-        if (dosyaInputRef.current) {
-          dosyaInputRef.current.value = '';
-        }
       }
     },
     [onDosyaYuklendi, setYuklemeDevamEdiyor]
@@ -131,11 +132,14 @@ export function FileUpload({
   /**
    * Dosya seçici açma
    */
-  const dosyaSeciciAc = () => {
+  const dosyaSeciciAc = useCallback(() => {
     if (dosyaInputRef.current && !yuklemeDevamEdiyor) {
-      dosyaInputRef.current.click();
+      // Küçük bir gecikme ile dosya seçici aç
+      setTimeout(() => {
+        dosyaInputRef.current?.click();
+      }, 50);
     }
-  };
+  }, [yuklemeDevamEdiyor]);
 
   return (
     <div className="w-full">
@@ -152,7 +156,12 @@ export function FileUpload({
         onDragOver={suruklenmeDevamEdiyor}
         onDragEnter={suruklenmeBasladi}
         onDragLeave={suruklenmeAyrilildi}
-        onClick={dosyaSeciciAc}
+        onClick={(e) => {
+          // Sadece ana alan tıklandığında, alt elementler değil
+          if (e.target === e.currentTarget) {
+            dosyaSeciciAc();
+          }
+        }}
       >
         <div className="space-y-4">
           {yuklemeDevamEdiyor ? (
@@ -181,7 +190,10 @@ export function FileUpload({
               <Button
                 variant="outline"
                 className="mx-auto"
-                onClick={dosyaSeciciAc}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dosyaSeciciAc();
+                }}
               >
                 <File className="mr-2 h-4 w-4" />
                 Dosya Seç

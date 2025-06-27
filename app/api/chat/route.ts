@@ -20,7 +20,7 @@ function ragPromptOlustur(kullaniciSorusu: string, baglamMetinleri: string[]): s
 - SADECE ve SADECE verilen bağlam bilgilerini kullan
 - Kendi genel bilgini asla kullanma
 - Bağlamda bulunmayan bilgiler hakkında spekülasyon yapma
-- Eğer soru bağlamdaki bilgilerle cevaplanamıyorsa, "Bu soruya cevap verebilmek için dökümanınızda yeterli bilgi bulunmuyor" de
+- Eğer soru bağlamdaki bilgilerle cevaplanamıyorsa, "Bu soruya cevap verebilmek için yüklediğiniz dökümanlarda yeterli bilgi bulunmuyor" de
 
 BAĞLAM BİLGİLERİ:
 ${baglamBirlesmis}
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const body = await req.json() as ISohbetIstegi;
     const { soru, dosyaId } = body;
 
+    console.log('Chat API çağrıldı:', { soru: soru?.substring(0, 50) + '...', dosyaId });
+
     // Girdi doğrulama
     if (!soru?.trim()) {
       return NextResponse.json({
@@ -58,6 +60,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     let soruVektoru: number[];
     try {
       soruVektoru = await metniVektoreCevir(soru);
+      console.log('Soru vektöre çevrildi, boyut:', soruVektoru.length);
     } catch (hata) {
       console.error('Soru vektöre çevrilirken hata:', hata);
       return NextResponse.json({
@@ -68,13 +71,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Pinecone'da benzer parçacıkları ara
+    // dosyaId yoksa tüm veriler içinde ara, varsa sadece o dosyada ara
     let benzerParcaciklar;
     try {
       benzerParcaciklar = await benzerParcaciklariAra(
         soruVektoru,
-        dosyaId,
+        dosyaId, // undefined olabilir, o zaman tüm veriler içinde arar
         MAKSIMUM_CONTEXT_SAYISI
       );
+      
+      console.log('Pinecone araması tamamlandı:', {
+        bulunanSonucSayisi: benzerParcaciklar.length,
+        dosyaId: dosyaId || 'TÜM VERİLER'
+      });
     } catch (hata) {
       console.error('Pinecone araması hatası:', hata);
       return NextResponse.json({
@@ -89,11 +98,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       parcacik => parcacik.skor >= MINIMUM_BENZERLIK_SKORU
     );
 
+    console.log('Uygun parçacık sayısı:', uygunParcaciklar.length);
+
     if (uygunParcaciklar.length === 0) {
       return NextResponse.json({
         success: false,
         data: null,
-        error: 'Bu soruya cevap verebilmek için dökümanınızda yeterli ilgili bilgi bulunamadı.',
+        error: 'Bu soruya cevap verebilmek için yüklediğiniz dökümanlarda yeterli ilgili bilgi bulunamadı.',
       }, { status: 404 });
     }
 
@@ -108,6 +119,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          console.log('Gemini streaming başlatılıyor...');
+          
           // Gemini modeli ile stream response al
           const result = await geminiModel.generateContentStream(ragPrompt);
 
@@ -123,6 +136,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           // Stream'i sonlandır
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
+          console.log('Gemini streaming tamamlandı');
         } catch (hata) {
           console.error('Gemini stream hatası:', hata);
           const errorData = JSON.stringify({ 
