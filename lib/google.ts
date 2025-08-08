@@ -31,9 +31,12 @@ export async function metniVektoreCevir(metin: string): Promise<number[]> {
   try {
     const sonuc = await embeddingModel.embedContent(metin);
     return sonuc.embedding.values;
-  } catch (hata: any) {
+  } catch (hata: unknown) {
     console.error('Metin vektöre çevrilirken hata detayı:', hata);
-    throw new Error(`Metin vektöre çevrilemedi: ${hata?.message || 'Bilinmeyen hata'}`);
+    if (hata instanceof Error) {
+      throw new Error(`Metin vektöre çevrilemedi: ${hata.message}`);
+    }
+    throw new Error('Metin vektöre çevrilemedi: Bilinmeyen hata');
   }
 }
 
