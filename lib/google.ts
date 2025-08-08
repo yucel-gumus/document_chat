@@ -11,7 +11,7 @@ const googleAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
  * Sohbet ve metin üretimi için kullanılır
  */
 export const geminiModel = googleAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-exp',
+  model: 'gemini-2.0-flash',
 });
 
 /**
@@ -19,7 +19,7 @@ export const geminiModel = googleAI.getGenerativeModel({
  * Metinleri vektöre çevirmek için kullanılır
  */
 export const embeddingModel = googleAI.getGenerativeModel({
-  model: process.env.EMBEDDING_MODEL || 'text-embedding-004',
+  model: process.env.EMBEDDING_MODEL || 'gemini-embedding-001',
 });
 
 /**
@@ -31,9 +31,9 @@ export async function metniVektoreCevir(metin: string): Promise<number[]> {
   try {
     const sonuc = await embeddingModel.embedContent(metin);
     return sonuc.embedding.values;
-  } catch (hata) {
-    console.error('Metin vektöre çevrilirken hata:', hata);
-    throw new Error('Metin vektöre çevrilemedi');
+  } catch (hata: any) {
+    console.error('Metin vektöre çevrilirken hata detayı:', hata);
+    throw new Error(`Metin vektöre çevrilemedi: ${hata?.message || 'Bilinmeyen hata'}`);
   }
 }
 
