@@ -1,7 +1,0 @@
-# Bağımlılıklar
-node_modules
-
-# Build çıktıları
-.next
-dist
-build

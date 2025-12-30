@@ -8,29 +8,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { FileUploadModal } from '@/components/custom/FileUploadModal';
 import { ChatWindow } from '@/components/custom/ChatWindow';
 import { IYuklenenDosya, IChatMesaji } from '@/lib/types';
-import { MessageCircle, Database, Loader2 } from 'lucide-react';
+import { MessageCircle, Database, Loader2, Trash2, FileText, X } from 'lucide-react';
 
-/**
- * Ana sayfa bileşeni
- * Döküman yükleme ve sohbet işlevlerini içerir
- */
 export default function AnaSayfa() {
-  const [yuklenenDosya, setYuklenenDosya] = useState<IYuklenenDosya | null>(null);
+  const [yuklenenDosyalar, setYuklenenDosyalar] = useState<IYuklenenDosya[]>([]);
   const [chatMesajlari, setChatMesajlari] = useState<IChatMesaji[]>([]);
   const [yuklemeDurumu, setYuklemeDurumu] = useState<boolean>(false);
   const [veriKontrolEdiliyor, setVeriKontrolEdiliyor] = useState<boolean>(true);
+  const [silmeDevamEdiyor, setSilmeDevamEdiyor] = useState<string | null>(null);
+  const [dosyaListesiAcik, setDosyaListesiAcik] = useState<boolean>(false);
   const [pineconeVeriDurumu, setPineconeVeriDurumu] = useState<{
     hasData: boolean;
     totalChunks: number;
     message: string;
   } | null>(null);
 
-  /**
-   * Sayfa yüklendiğinde Pinecone'da veri olup olmadığını kontrol et
-   */
   useEffect(() => {
     const pineconeVeriKontrolEt = async () => {
       try {
@@ -43,35 +39,21 @@ export default function AnaSayfa() {
         console.log('Pinecone veri kontrolü sonucu:', data);
 
         if (data.success && data.hasData) {
-          // Pinecone'da veri var - sohbet modunu aktif et
           setPineconeVeriDurumu({
             hasData: true,
             totalChunks: data.totalChunks,
             message: data.message
           });
 
-          // Sanal bir dosya objesi oluştur (sohbet için gerekli)
-          const sanalDosya: IYuklenenDosya = {
-            id: 'pinecone-data',
-            ad: 'Mevcut Dökümanlar',
-            boyut: 0,
-            tur: 'application/pinecone',
-            yuklenmeTarihi: new Date(),
-            metinParcacigiSayisi: data.totalChunks,
-          };
-          setYuklenenDosya(sanalDosya);
-
-          // Karşılama mesajı ekle
           const karsilamaMesaji: IChatMesaji = {
             id: Date.now().toString(),
             tur: 'asistan',
-            icerik: `Merhaba! Pinecone'da ${data.totalChunks} adet metin parçacığı bulunuyor. Bu veriler temelinde sorularınızı sorabilirsiniz. Hangi konuda sohbet etmek istersiniz?`,
+            icerik: `Merhaba! Pinecone'da ${data.totalChunks} adet metin parçacığı bulunuyor. Bu veriler temelinde sorularınızı sorabilirsiniz.`,
             zaman: new Date(),
           };
           setChatMesajlari([karsilamaMesaji]);
 
         } else {
-          // Pinecone'da veri yok
           setPineconeVeriDurumu({
             hasData: false,
             totalChunks: 0,
@@ -94,45 +76,86 @@ export default function AnaSayfa() {
     pineconeVeriKontrolEt();
   }, []);
 
-  /**
-   * Yeni dosya yükleme tamamlandığında çalışır
-   * @param dosya - Yüklenen dosya bilgileri
-   */
+  const dosyaSil = async (dosya: IYuklenenDosya) => {
+    const onay = confirm(`"${dosya.ad}" dosyasını silmek istediğinize emin misiniz?`);
+    if (!onay) return;
+
+    setSilmeDevamEdiyor(dosya.id);
+
+    try {
+      const response = await fetch('/api/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dosyaId: dosya.id }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setYuklenenDosyalar(prev => prev.filter(d => d.id !== dosya.id));
+
+        setPineconeVeriDurumu(prev => {
+          const newTotal = (prev?.totalChunks || 0) - dosya.metinParcacigiSayisi;
+          return {
+            hasData: newTotal > 0,
+            totalChunks: Math.max(0, newTotal),
+            message: newTotal > 0 ? `${newTotal} parçacık mevcut` : 'Veri yok'
+          };
+        });
+
+        const silmeMesaji: IChatMesaji = {
+          id: Date.now().toString(),
+          tur: 'asistan',
+          icerik: `"${dosya.ad}" dosyası başarıyla silindi.`,
+          zaman: new Date(),
+        };
+        setChatMesajlari(prev => [...prev, silmeMesaji]);
+      } else {
+        throw new Error(data.error || 'Silme işlemi başarısız');
+      }
+    } catch (error) {
+      console.error('Silme hatası:', error);
+      alert(error instanceof Error ? error.message : 'Silme işlemi başarısız');
+    } finally {
+      setSilmeDevamEdiyor(null);
+    }
+  };
+
   const dosyaYuklenmeTamamlandi = (dosya: IYuklenenDosya) => {
-    setYuklenenDosya(dosya);
-    
-    // Yeni dosya yüklenince Pinecone durumunu güncelle
+    setYuklenenDosyalar(prev => [...prev, dosya]);
+
     setPineconeVeriDurumu(prev => ({
       hasData: true,
       totalChunks: (prev?.totalChunks || 0) + dosya.metinParcacigiSayisi,
       message: `Toplam ${(prev?.totalChunks || 0) + dosya.metinParcacigiSayisi} metin parçacığı mevcut.`
     }));
 
-    // Karşılama mesajı ekle
     const karsilamaMesaji: IChatMesaji = {
       id: Date.now().toString(),
       tur: 'asistan',
-      icerik: `Harika! "${dosya.ad}" dosyasını başarıyla yükledim ve ${dosya.metinParcacigiSayisi} parçaya ayırdım. Artık bu döküman hakkında sorularınızı sorabilirsiniz! 🎉`,
+      icerik: `Harika! "${dosya.ad}" dosyasını başarıyla yükledim ve ${dosya.metinParcacigiSayisi} parçaya ayırdım. 🎉`,
       zaman: new Date(),
     };
-    
-    // Eğer daha önce mesaj varsa ekle, yoksa yeni liste oluştur
-    setChatMesajlari(prev => prev.length > 0 ? [...prev, karsilamaMesaji] : [karsilamaMesaji]);
+
+    setChatMesajlari(prev => [...prev, karsilamaMesaji]);
   };
 
-  /**
-   * Yeni chat mesajı ekler
-   * @param mesaj - Eklenecek mesaj
-   */
   const yeniMesajEkle = (mesaj: IChatMesaji) => {
     setChatMesajlari(oncekiMesajlar => [...oncekiMesajlar, mesaj]);
   };
 
-  const dosyaYuklendi = !!yuklenenDosya;
+  const dosyaYuklendi = yuklenenDosyalar.length > 0 || (pineconeVeriDurumu?.hasData ?? false);
+
+  const formatBoyut = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
-      {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 py-4">
           <div className="flex items-center justify-between">
@@ -143,7 +166,6 @@ export default function AnaSayfa() {
               </h1>
             </div>
 
-            {/* Durum Göstergesi */}
             <div className="hidden md:flex items-center gap-3">
               {veriKontrolEdiliyor ? (
                 <div className="flex items-center gap-2 text-slate-600">
@@ -151,27 +173,80 @@ export default function AnaSayfa() {
                   <span className="text-sm">Kontrol ediliyor...</span>
                 </div>
               ) : pineconeVeriDurumu && (
-                <div className="flex items-center gap-2">
-                  <Database className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-slate-700">
-                    {pineconeVeriDurumu.hasData 
-                      ? `${pineconeVeriDurumu.totalChunks} parçacık hazır`
-                      : 'Veri yok'
-                    }
-                  </span>
-                  <div className={`w-2 h-2 rounded-full ${
-                    pineconeVeriDurumu.hasData ? 'bg-green-500' : 'bg-orange-500'
-                  }`} />
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm text-slate-700">
+                      {pineconeVeriDurumu.hasData
+                        ? `${pineconeVeriDurumu.totalChunks} parçacık hazır`
+                        : 'Veri yok'
+                      }
+                    </span>
+                    <div className={`w-2 h-2 rounded-full ${pineconeVeriDurumu.hasData ? 'bg-green-500' : 'bg-orange-500'}`} />
+                  </div>
+
+                  {yuklenenDosyalar.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDosyaListesiAcik(!dosyaListesiAcik)}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Dosyalar ({yuklenenDosyalar.length})
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
+      {dosyaListesiAcik && yuklenenDosyalar.length > 0 && (
+        <div className="bg-white border-b border-slate-200 shadow-sm">
+          <div className="mx-auto max-w-7xl px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-slate-700">Yüklenen Dosyalar</h3>
+              <Button variant="ghost" size="sm" onClick={() => setDosyaListesiAcik(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {yuklenenDosyalar.map(dosya => (
+                <div
+                  key={dosya.id}
+                  className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
+                >
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-800 max-w-[150px] truncate">
+                      {dosya.ad}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {formatBoyut(dosya.boyut)} • {dosya.metinParcacigiSayisi} parça
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => dosyaSil(dosya)}
+                    disabled={silmeDevamEdiyor === dosya.id}
+                  >
+                    {silmeDevamEdiyor === dosya.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 flex flex-col">
-        {/* Durum Mesajı - Mobile */}
         {!veriKontrolEdiliyor && pineconeVeriDurumu && (
           <div className="md:hidden p-4">
             <div className="text-center">
@@ -190,26 +265,19 @@ export default function AnaSayfa() {
           </div>
         )}
 
-        {/* Chat Area */}
         <div className="flex-1 px-4 pb-4">
           <div className="mx-auto max-w-4xl h-full">
             {veriKontrolEdiliyor ? (
-              // Loading State
               <Card className="h-[calc(100vh-200px)] flex items-center justify-center">
                 <div className="text-center space-y-4">
                   <Loader2 className="h-8 w-8 mx-auto animate-spin text-blue-600" />
                   <div>
-                    <p className="text-lg font-medium text-slate-900">
-                      Sistem Hazırlanıyor
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      Mevcut veriler kontrol ediliyor...
-                    </p>
+                    <p className="text-lg font-medium text-slate-900">Sistem Hazırlanıyor</p>
+                    <p className="text-sm text-slate-600">Mevcut veriler kontrol ediliyor...</p>
                   </div>
                 </div>
               </Card>
             ) : (
-              // Chat Interface
               <Card className="h-[calc(100vh-200px)] flex flex-col shadow-lg">
                 <CardHeader className="border-b border-slate-200 bg-slate-50/50">
                   <CardTitle className="flex items-center gap-2">
@@ -218,9 +286,7 @@ export default function AnaSayfa() {
                   </CardTitle>
                   <CardDescription>
                     {dosyaYuklendi
-                      ? pineconeVeriDurumu?.hasData 
-                        ? 'Yüklediğiniz dökümanlar hakkında sorularınızı sorun'
-                        : `"${yuklenenDosya?.ad}" hakkında sorularınızı sorun`
+                      ? `${yuklenenDosyalar.length > 0 ? yuklenenDosyalar.length + ' dosya yüklendi - ' : ''}Sorularınızı sorun`
                       : 'Sohbet edebilmek için sağ alt köşedeki butona tıklayarak döküman yükleyin'
                     }
                   </CardDescription>
@@ -230,7 +296,7 @@ export default function AnaSayfa() {
                     mesajlar={chatMesajlari}
                     onYeniMesaj={yeniMesajEkle}
                     dosyaYuklendi={dosyaYuklendi}
-                    dosyaId={yuklenenDosya?.id === 'pinecone-data' ? undefined : yuklenenDosya?.id}
+                    dosyaId={undefined}
                   />
                 </CardContent>
               </Card>
@@ -239,7 +305,6 @@ export default function AnaSayfa() {
         </div>
       </main>
 
-      {/* File Upload Modal */}
       <FileUploadModal
         onDosyaYuklendi={dosyaYuklenmeTamamlandi}
         yuklemeDevamEdiyor={yuklemeDurumu}
@@ -247,11 +312,10 @@ export default function AnaSayfa() {
         pineconeVeriDurumu={pineconeVeriDurumu}
       />
 
-      {/* Footer */}
       <footer className="border-t border-slate-200 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="text-center text-xs text-slate-500">
-            🤖 Gemini 2.0 Flash • 🔍 Pinecone Vektör Arama • ⚡ Next.js 14+ App Router
+            🔍 Pinecone Vektör Arama • ⚡ Next.js 14+ App Router
           </div>
         </div>
       </footer>

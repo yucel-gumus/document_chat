@@ -6,7 +6,7 @@ Bu proje, TypeScript, Next.js 14+, Gemini 2.0 ve Pinecone kullanarak geliştiril
 
 - **Döküman Yükleme**: PDF, DOCX ve TXT dosyaları desteği
 - **Sürükle-Bırak**: Kolay dosya yükleme arayüzü
-- **AI Sohbet**: Gemini 2.0 Flash modeli ile gerçek zamanlı sohbet
+- **AI Sohbet**: Gemini modeli ile gerçek zamanlı sohbet
 - **RAG Mimarisi**: Retrieval-Augmented Generation ile doğru cevaplar
 - **Streaming**: Server-Sent Events ile anlık yanıtlar
 - **Vektör Arama**: Pinecone ile anlamsal metin araması
