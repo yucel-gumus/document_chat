@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const AI_API_URL = process.env.AI_API_URL || 'http://localhost:8000';
+import { gatewayFetch } from '@/lib/gateway';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
     const { soru, dosyaId } = body;
-
-    console.log('Chat API proxy çağrıldı:', {
-      soru: soru?.substring(0, 50) + '...',
-      dosyaId,
-      targetUrl: `${AI_API_URL}/api/chat`
-    });
 
     if (!soru?.trim()) {
       return NextResponse.json({
@@ -21,18 +14,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
-    const response = await fetch(`${AI_API_URL}/api/dokuman-chat/stream`, {
+    const response = await gatewayFetch('/api/dokuman-chat/stream', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ soru, dosyaId }),
     });
 
     if (!response.ok) {
-      let errorData;
+      let errorData: Record<string, unknown>;
       try {
         errorData = await response.json();
       } catch {
-        errorData = { error: 'AI API hatası' };
+        errorData = { error: 'Gateway hatası' };
       }
       return NextResponse.json(errorData, { status: response.status });
     }
@@ -42,10 +34,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        Connection: 'keep-alive',
       },
     });
   } catch (hata) {
@@ -54,18 +43,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       success: false,
       data: null,
-      error: hata instanceof Error ? hata.message : 'AI API bağlantı hatası',
+      error: hata instanceof Error ? hata.message : 'Gateway bağlantı hatası',
     }, { status: 500 });
   }
 }
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-} 

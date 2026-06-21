@@ -6,10 +6,9 @@ import {
   desteklenenDosyaTuruMu,
 } from '@/lib/types';
 
-const AI_API_URL = process.env.AI_API_URL || 'http://localhost:8000';
+import { gatewayFetch } from '@/lib/gateway';
 
 const MAKSIMUM_DOSYA_BOYUTU = 10 * 1024 * 1024;
-
 const CHUNK_KELIME_SAYISI = 500;
 
 function metniChunklereBol(metin: string): string[] {
@@ -103,9 +102,9 @@ async function chunkiPythonAPIyeGonder(
   metin: string,
   dosyaId: string
 ): Promise<void> {
-  const response = await fetch(`${AI_API_URL}/api/dokuman-upsert`, {
+  const response = await gatewayFetch('/api/dokuman-upsert', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    admin: true,
     body: JSON.stringify({
       id: chunkId,
       metin: metin,
