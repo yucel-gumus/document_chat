@@ -1,22 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { gatewayFetch } from '@/lib/gateway';
 
+function resolveDosyaIds(body: {
+  dosyaId?: string;
+  dosyaIds?: string[];
+}): string[] {
+  const ids = new Set<string>();
+  if (body.dosyaId?.trim()) {
+    ids.add(body.dosyaId.trim());
+  }
+  if (Array.isArray(body.dosyaIds)) {
+    for (const id of body.dosyaIds) {
+      if (typeof id === 'string' && id.trim()) {
+        ids.add(id.trim());
+      }
+    }
+  }
+  return [...ids];
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
-    const { soru, dosyaId } = body;
+    const { soru } = body;
+    const dosyaIds = resolveDosyaIds(body);
 
     if (!soru?.trim()) {
       return NextResponse.json({
         success: false,
-        data: null,
         error: 'Soru boş olamaz.',
+      }, { status: 400 });
+    }
+
+    if (dosyaIds.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Sohbet için önce döküman yükleyin (dosyaId gerekli).',
       }, { status: 400 });
     }
 
     const response = await gatewayFetch('/api/dokuman-chat/stream', {
       method: 'POST',
-      body: JSON.stringify({ soru, dosyaId }),
+      body: JSON.stringify({
+        soru,
+        dosyaIds,
+      }),
     });
 
     if (!response.ok) {
@@ -42,7 +70,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: false,
-      data: null,
       error: hata instanceof Error ? hata.message : 'Gateway bağlantı hatası',
     }, { status: 500 });
   }

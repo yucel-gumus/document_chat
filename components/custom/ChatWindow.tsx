@@ -11,7 +11,7 @@ interface ChatWindowProps {
   mesajlar: IChatMesaji[];
   onYeniMesaj: (mesaj: IChatMesaji) => void;
   dosyaYuklendi: boolean;
-  dosyaId?: string;
+  dosyaIds: string[];
 }
 
 /**
@@ -22,7 +22,7 @@ export function ChatWindow({
   mesajlar,
   onYeniMesaj,
   dosyaYuklendi,
-  dosyaId,
+  dosyaIds,
 }: ChatWindowProps) {
   const [soruMetni, setSoruMetni] = useState('');
   const [cevapBekleniyor, setCevapBekleniyor] = useState(false);
@@ -44,7 +44,7 @@ export function ChatWindow({
   const soruGonder = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!soruMetni.trim() || !dosyaYuklendi || cevapBekleniyor) {
+    if (!soruMetni.trim() || !dosyaYuklendi || dosyaIds.length === 0 || cevapBekleniyor) {
       return;
     }
 
@@ -70,7 +70,7 @@ export function ChatWindow({
         },
         body: JSON.stringify({
           soru: kullaniciMesaji.icerik,
-          dosyaId: dosyaId,
+          dosyaIds,
         }),
       });
 

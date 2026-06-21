@@ -38,21 +38,12 @@ export default function AnaSayfa() {
 
         console.log('Pinecone veri kontrolü sonucu:', data);
 
-        if (data.success && data.hasData) {
+        if (data.success) {
           setPineconeVeriDurumu({
-            hasData: true,
-            totalChunks: data.totalChunks,
-            message: data.message
+            hasData: false,
+            totalChunks: 0,
+            message: data.message || 'Önce döküman yükleyin.',
           });
-
-          const karsilamaMesaji: IChatMesaji = {
-            id: Date.now().toString(),
-            tur: 'asistan',
-            icerik: `Merhaba! Pinecone'da ${data.totalChunks} adet metin parçacığı bulunuyor. Bu veriler temelinde sorularınızı sorabilirsiniz.`,
-            zaman: new Date(),
-          };
-          setChatMesajlari([karsilamaMesaji]);
-
         } else {
           setPineconeVeriDurumu({
             hasData: false,
@@ -122,13 +113,15 @@ export default function AnaSayfa() {
   };
 
   const dosyaYuklenmeTamamlandi = (dosya: IYuklenenDosya) => {
-    setYuklenenDosyalar(prev => [...prev, dosya]);
-
-    setPineconeVeriDurumu(prev => ({
-      hasData: true,
-      totalChunks: (prev?.totalChunks || 0) + dosya.metinParcacigiSayisi,
-      message: `Toplam ${(prev?.totalChunks || 0) + dosya.metinParcacigiSayisi} metin parçacığı mevcut.`
-    }));
+    setYuklenenDosyalar((prev) => {
+      const next = [...prev, dosya];
+      setPineconeVeriDurumu({
+        hasData: true,
+        totalChunks: next.reduce((t, d) => t + d.metinParcacigiSayisi, 0),
+        message: 'Bu oturumdaki dökümanlar kullanılıyor.',
+      });
+      return next;
+    });
 
     const karsilamaMesaji: IChatMesaji = {
       id: Date.now().toString(),
@@ -144,7 +137,12 @@ export default function AnaSayfa() {
     setChatMesajlari(oncekiMesajlar => [...oncekiMesajlar, mesaj]);
   };
 
-  const dosyaYuklendi = yuklenenDosyalar.length > 0 || (pineconeVeriDurumu?.hasData ?? false);
+  const dosyaYuklendi = yuklenenDosyalar.length > 0;
+  const oturumDosyaIds = yuklenenDosyalar.map((d) => d.id);
+  const oturumParcaSayisi = yuklenenDosyalar.reduce(
+    (toplam, d) => toplam + d.metinParcacigiSayisi,
+    0,
+  );
 
   const formatBoyut = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -177,12 +175,12 @@ export default function AnaSayfa() {
                   <div className="flex items-center gap-2">
                     <Database className="h-4 w-4 text-blue-600" />
                     <span className="text-sm text-slate-700">
-                      {pineconeVeriDurumu.hasData
-                        ? `${pineconeVeriDurumu.totalChunks} parçacık hazır`
+                      {dosyaYuklendi
+                        ? `${oturumParcaSayisi} parçacık (bu oturum)`
                         : 'Veri yok'
                       }
                     </span>
-                    <div className={`w-2 h-2 rounded-full ${pineconeVeriDurumu.hasData ? 'bg-green-500' : 'bg-orange-500'}`} />
+                    <div className={`w-2 h-2 rounded-full ${dosyaYuklendi ? 'bg-green-500' : 'bg-orange-500'}`} />
                   </div>
 
                   {yuklenenDosyalar.length > 0 && (
@@ -250,10 +248,10 @@ export default function AnaSayfa() {
         {!veriKontrolEdiliyor && pineconeVeriDurumu && (
           <div className="md:hidden p-4">
             <div className="text-center">
-              {pineconeVeriDurumu.hasData ? (
+              {dosyaYuklendi ? (
                 <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200 text-sm">
                   <span className="text-green-600">✅</span>
-                  <span>{pineconeVeriDurumu.totalChunks} parçacık hazır</span>
+                  <span>{oturumParcaSayisi} parçacık (bu oturum)</span>
                 </div>
               ) : (
                 <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg border border-blue-200 text-sm">
@@ -296,7 +294,7 @@ export default function AnaSayfa() {
                     mesajlar={chatMesajlari}
                     onYeniMesaj={yeniMesajEkle}
                     dosyaYuklendi={dosyaYuklendi}
-                    dosyaId={undefined}
+                    dosyaIds={oturumDosyaIds}
                   />
                 </CardContent>
               </Card>
