@@ -7,6 +7,7 @@ import {
 } from '@/lib/types';
 
 import { gatewayFetch } from '@/lib/gateway';
+import { attachTenantCookie, getOrCreateTenantId } from '@/lib/tenant';
 
 const MAKSIMUM_DOSYA_BOYUTU = 10 * 1024 * 1024;
 const CHUNK_KELIME_SAYISI = 500;
@@ -100,7 +101,8 @@ async function dosyadanMetinCikar(buffer: Buffer, dosyaTuru: string): Promise<st
 async function chunkiPythonAPIyeGonder(
   chunkId: string,
   metin: string,
-  dosyaId: string
+  dosyaId: string,
+  tenantId: string,
 ): Promise<void> {
   const response = await gatewayFetch('/api/dokuman-upsert', {
     method: 'POST',
@@ -109,6 +111,7 @@ async function chunkiPythonAPIyeGonder(
       id: chunkId,
       metin: metin,
       dosyaId: dosyaId,
+      tenantId,
     }),
   });
 
@@ -120,6 +123,7 @@ async function chunkiPythonAPIyeGonder(
 
 export async function POST(req: NextRequest): Promise<NextResponse<IApiYaniti<IDosyaYuklemeYaniti>>> {
   try {
+    const { tenantId, isNew } = getOrCreateTenantId(req);
     console.log('Upload API çağrıldı');
 
     const formData = await req.formData();
@@ -200,7 +204,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<IApiYaniti<ID
 
         const chunkId = `${dosyaId}_chunk_${index}`;
 
-        await chunkiPythonAPIyeGonder(chunkId, chunk, dosyaId);
+        await chunkiPythonAPIyeGonder(chunkId, chunk, dosyaId, tenantId);
         console.log(`Chunk ${index + 1} başarıyla kaydedildi`);
 
         return true;
@@ -225,7 +229,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<IApiYaniti<ID
     };
 
     console.log('Başarılı response dönülüyor:', response);
-    return NextResponse.json(response);
+    const res = NextResponse.json(response);
+    if (isNew) attachTenantCookie(res, tenantId);
+    return res;
 
   } catch (hata) {
     console.error('Dosya yükleme hatası (detaylı):', {

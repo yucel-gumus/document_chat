@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { gatewayFetch } from '@/lib/gateway';
+import { requireTenantId } from '@/lib/tenant';
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
   try {
@@ -13,10 +14,15 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
+    const tenantId = requireTenantId(req);
+    if (!tenantId) {
+      return NextResponse.json({ success: false, error: 'Oturum gerekli.' }, { status: 401 });
+    }
+
     const response = await gatewayFetch('/api/dokuman-sil', {
       method: 'DELETE',
       admin: true,
-      body: JSON.stringify({ dosyaId }),
+      body: JSON.stringify({ dosyaId, tenantId }),
     });
 
     if (!response.ok) {

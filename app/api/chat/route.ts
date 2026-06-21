@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { gatewayFetch } from '@/lib/gateway';
+import { requireTenantId } from '@/lib/tenant';
 
 function resolveDosyaIds(body: {
   dosyaId?: string;
@@ -39,11 +40,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
+    const tenantId = requireTenantId(req);
+    if (!tenantId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Oturum gerekli. Sayfayı yenileyin.',
+      }, { status: 401 });
+    }
+
     const response = await gatewayFetch('/api/dokuman-chat/stream', {
       method: 'POST',
       body: JSON.stringify({
         soru,
         dosyaIds,
+        tenantId,
       }),
     });
 

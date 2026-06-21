@@ -28,6 +28,8 @@ export default function AnaSayfa() {
   } | null>(null);
 
   useEffect(() => {
+    fetch('/api/session', { credentials: 'include' }).catch(() => undefined);
+
     const pineconeVeriKontrolEt = async () => {
       try {
         console.log('Pinecone veri kontrolü başlatılıyor...');
