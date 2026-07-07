@@ -3,7 +3,7 @@
  * Keys must never be exposed to the browser — use only in Route Handlers.
  */
 
-const DEFAULT_GATEWAY_URL = 'https://api.yucelgumus.dev';
+const DEFAULT_GATEWAY_URL = 'https://python-backend-270384591051.europe-west3.run.app';
 
 export function getGatewayBaseUrl(): string {
   const url =
