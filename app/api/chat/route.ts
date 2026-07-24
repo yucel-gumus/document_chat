@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { gatewayFetch } from '@/lib/gateway';
+import { gatewayFetch, handleGatewayErrorResponse } from '@/lib/gateway';
 import { requireTenantId } from '@/lib/tenant';
 
 function resolveDosyaIds(body: {
@@ -58,13 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
 
     if (!response.ok) {
-      let errorData: Record<string, unknown>;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { error: 'Gateway hatası' };
-      }
-      return NextResponse.json(errorData, { status: response.status });
+      return handleGatewayErrorResponse(response);
     }
 
     return new NextResponse(response.body, {

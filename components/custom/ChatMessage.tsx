@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { IChatMesaji } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Bot, User } from 'lucide-react';
 
 interface ChatMessageProps {
   mesaj: IChatMesaji;
@@ -8,7 +9,7 @@ interface ChatMessageProps {
 
 /**
  * Tek bir sohbet mesajını gösteren bileşen
- * Kullanıcı ve asistan mesajları için farklı stiller uygular
+ * 60-30-10 Renk Kurallarına göre (Dominant: #FFEBD3, Sekonder: #FFB6A6, Aksan: #9BCEC1)
  */
 export function ChatMessage({ mesaj }: ChatMessageProps) {
   const kullaniciMesajiMi = mesaj.tur === 'kullanici';
@@ -16,37 +17,42 @@ export function ChatMessage({ mesaj }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        'flex w-full mb-4',
+        'flex w-full mb-4 animate-in fade-in slide-in-from-bottom-2 duration-200',
         kullaniciMesajiMi ? 'justify-end' : 'justify-start'
       )}
     >
       <div
         className={cn(
-          'max-w-[85%] rounded-lg px-4 py-3 shadow-sm',
+          'max-w-[85%] rounded-2xl px-4 py-3.5 shadow-sm border transition-all',
           kullaniciMesajiMi
-            ? 'bg-blue-600 text-white rounded-br-sm'
-            : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm'
+            ? 'bg-[#FFB6A6] border-[#E69B8B] text-[#2D2320] rounded-br-xs'
+            : 'bg-[#FFEBD3] border-[#E69B8B] text-[#2D2320] rounded-bl-xs'
         )}
       >
-        {/* Mesaj Başlığı */}
-        <div className="flex items-center gap-2 mb-2">
+        {/* Mesaj Başlığı & Rozet */}
+        <div className="flex items-center justify-between gap-3 mb-2 pb-1.5 border-b border-[#E69B8B]/40">
           <Badge
-            variant={kullaniciMesajiMi ? 'secondary' : 'default'}
             className={cn(
-              'text-xs',
+              'text-xs font-semibold px-2.5 py-0.5 border-none shadow-none flex items-center gap-1.5',
               kullaniciMesajiMi
-                ? 'bg-blue-500 hover:bg-blue-500 text-white'
-                : 'bg-slate-100 hover:bg-slate-100 text-slate-700'
+                ? 'bg-[#FFEBD3] text-[#2D2320]'
+                : 'bg-[#9BCEC1] text-[#2D2320]'
             )}
           >
-            {kullaniciMesajiMi ? '👤 Siz' : '🤖 Asistan'}
+            {kullaniciMesajiMi ? (
+              <>
+                <User className="h-3 w-3 text-[#2D2320]" />
+                <span>Siz</span>
+              </>
+            ) : (
+              <>
+                <Bot className="h-3 w-3 text-[#2D2320]" />
+                <span>Kensai</span>
+              </>
+            )}
           </Badge>
-          <span
-            className={cn(
-              'text-xs',
-              kullaniciMesajiMi ? 'text-blue-100' : 'text-slate-500'
-            )}
-          >
+
+          <span className="text-[11px] font-medium text-[#6B5751]">
             {mesaj.zaman.toLocaleTimeString('tr-TR', {
               hour: '2-digit',
               minute: '2-digit',
@@ -55,12 +61,7 @@ export function ChatMessage({ mesaj }: ChatMessageProps) {
         </div>
 
         {/* Mesaj İçeriği */}
-        <div
-          className={cn(
-            'text-sm leading-relaxed whitespace-pre-wrap',
-            kullaniciMesajiMi ? 'text-white' : 'text-slate-800'
-          )}
-        >
+        <div className="text-sm leading-relaxed whitespace-pre-wrap font-medium text-[#2D2320]">
           {mesaj.icerik}
         </div>
       </div>

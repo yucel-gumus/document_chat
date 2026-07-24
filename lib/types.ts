@@ -1,3 +1,5 @@
+import { DESTEKLENEN_DOSYA_TURLERI } from './constants';
+
 /**
  * API yanıtları için standart format
  */
@@ -35,34 +37,6 @@ export interface IYuklenenDosya {
 }
 
 /**
- * Döküman metin parçacığı
- */
-export interface IDokumanParcacigi {
-  id: string;
-  dosyaId: string;
-  metin: string;
-  siraNo: number;
-  vektor?: number[];
-}
-
-/**
- * Pinecone arama sonucu
- */
-export interface IPineconeAramaSonucu {
-  id: string;
-  skor: number;
-  metin: string;
-  dosyaId: string;
-}
-
-/**
- * Dosya yükleme isteği
- */
-export interface IDosyaYuklemeIstegi {
-  dosya: File;
-}
-
-/**
  * Dosya yükleme yanıtı
  */
 export interface IDosyaYuklemeYaniti {
@@ -73,35 +47,15 @@ export interface IDosyaYuklemeYaniti {
 }
 
 /**
- * Sohbet isteği
+ * Dosya türü kontrol fonksiyonu (MIME türü veya dosya uzantısına göre esnek kontrol)
  */
-export interface ISohbetIstegi {
-  soru: string;
-  dosyaId?: string;
-}
-
-/**
- * Sohbet yanıtı
- */
-export interface ISohbetYaniti {
-  cevap: string;
-  kullanılanBaglamlar: IPineconeAramaSonucu[];
-}
-
-/**
- * Desteklenen dosya türleri
- */
-export const DESTEKLENEN_DOSYA_TURLERI = [
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-] as const;
-
-/**
- * Dosya türü kontrol fonksiyonu
- */
-export function desteklenenDosyaTuruMu(dosyaTuru: string): boolean {
-  return DESTEKLENEN_DOSYA_TURLERI.includes(
-    dosyaTuru as (typeof DESTEKLENEN_DOSYA_TURLERI)[number]
-  );
+export function desteklenenDosyaTuruMu(dosyaTuru: string, dosyaAdi?: string): boolean {
+  if ((DESTEKLENEN_DOSYA_TURLERI as readonly string[]).includes(dosyaTuru)) {
+    return true;
+  }
+  if (dosyaAdi) {
+    const ext = dosyaAdi.toLowerCase();
+    return ext.endsWith('.pdf') || ext.endsWith('.docx') || ext.endsWith('.txt');
+  }
+  return false;
 }

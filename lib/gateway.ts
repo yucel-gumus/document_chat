@@ -1,3 +1,5 @@
+import { NextResponse } from 'next/server';
+
 /**
  * Server-side proxy to python_backend (Gemini Gateway).
  * Keys must never be exposed to the browser — use only in Route Handlers.
@@ -17,10 +19,12 @@ export function getGatewayClientApiKey(): string {
   const key =
     process.env.GATEWAY_CLIENT_API_KEY ||
     process.env.CLIENT_API_KEY ||
+    process.env.GATEWAY_ADMIN_API_KEY ||
+    process.env.ADMIN_API_KEY ||
     '';
   if (!key) {
     throw new Error(
-      'GATEWAY_CLIENT_API_KEY (or CLIENT_API_KEY) is not configured on the server.',
+      'GATEWAY_CLIENT_API_KEY (veya GATEWAY_ADMIN_API_KEY) sunucuda tanımlı değil.',
     );
   }
   return key;
@@ -30,10 +34,12 @@ export function getGatewayAdminApiKey(): string {
   const key =
     process.env.GATEWAY_ADMIN_API_KEY ||
     process.env.ADMIN_API_KEY ||
+    process.env.GATEWAY_CLIENT_API_KEY ||
+    process.env.CLIENT_API_KEY ||
     '';
   if (!key) {
     throw new Error(
-      'GATEWAY_ADMIN_API_KEY (or ADMIN_API_KEY) is not configured on the server.',
+      'GATEWAY_ADMIN_API_KEY (veya GATEWAY_CLIENT_API_KEY) sunucuda tanımlı değil.',
     );
   }
   return key;
@@ -67,4 +73,17 @@ export async function gatewayFetch(
     ...fetchInit,
     headers,
   });
+}
+
+/**
+ * API route handlers için ortak gateway hata yanıtı ayrıştırıcısı (DRY helper)
+ */
+export async function handleGatewayErrorResponse(response: Response): Promise<NextResponse> {
+  let errorData: Record<string, unknown>;
+  try {
+    errorData = await response.json();
+  } catch {
+    errorData = { error: 'Gateway hatası' };
+  }
+  return NextResponse.json(errorData, { status: response.status });
 }

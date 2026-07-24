@@ -3,7 +3,13 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { IYuklenenDosya, desteklenenDosyaTuruMu } from '@/lib/types';
+import { IYuklenenDosya, IDosyaYuklemeYaniti, desteklenenDosyaTuruMu } from '@/lib/types';
+import {
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB_LABEL,
+  SUPPORTED_FILE_EXTENSIONS,
+  SUPPORTED_FILE_TYPES_LABEL,
+} from '@/lib/constants';
 import { Upload, File, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,10 +19,6 @@ interface FileUploadProps {
   setYuklemeDevamEdiyor: (durum: boolean) => void;
 }
 
-/**
- * Sürükle-bırak destekli dosya yükleme bileşeni
- * PDF, Word ve metin dosyalarını destekler
- */
 export function FileUpload({
   onDosyaYuklendi,
   yuklemeDevamEdiyor,
@@ -26,34 +28,27 @@ export function FileUpload({
   const [hataMesaji, setHataMesaji] = useState<string | null>(null);
   const dosyaInputRef = useRef<HTMLInputElement>(null);
 
-  /**
-   * Dosya seçildiğinde çalışır
-   */
   const dosyaSecildi = useCallback(
     async (dosyalar: FileList | null) => {
       if (!dosyalar || dosyalar.length === 0) return;
 
       const dosya = dosyalar[0];
       setHataMesaji(null);
-      
-      // Input'u hemen temizle ki aynı dosya tekrar seçilebilsin
+
       if (dosyaInputRef.current) {
         dosyaInputRef.current.value = '';
       }
 
-      // Dosya türü kontrolü
-      if (!desteklenenDosyaTuruMu(dosya.type)) {
+      if (!desteklenenDosyaTuruMu(dosya.type, dosya.name)) {
         setHataMesaji(
-          'Desteklenmeyen dosya türü. Lütfen PDF, Word (.docx) veya metin (.txt) dosyası seçin.'
+          `Desteklenmeyen dosya türü. Lütfen ${SUPPORTED_FILE_TYPES_LABEL} seçin.`
         );
         return;
       }
 
-      // Dosya boyutu kontrolü (10MB limit)
-      const maksimumBoyut = 10 * 1024 * 1024; // 10MB
-      if (dosya.size > maksimumBoyut) {
+      if (dosya.size > MAX_FILE_SIZE_BYTES) {
         setHataMesaji(
-          'Dosya boyutu çok büyük. Maksimum 10MB dosya yükleyebilirsiniz.'
+          `Dosya boyutu çok büyük. Maksimum ${MAX_FILE_SIZE_MB_LABEL} dosya yükleyebilirsiniz.`
         );
         return;
       }
@@ -69,24 +64,27 @@ export function FileUpload({
           body: formData,
         });
 
-        if (!yanit.ok) {
-          throw new Error(`HTTP ${yanit.status}: ${yanit.statusText}`);
+        let data: { success?: boolean; data?: IDosyaYuklemeYaniti; error?: string } | null = null;
+        try {
+          data = await yanit.json();
+        } catch {
+          data = null;
         }
 
-        const data = await yanit.json();
-
-        if (data.success) {
+        if (yanit.ok && data?.success && data.data) {
+          const resData = data.data;
           const yuklenenDosya: IYuklenenDosya = {
-            id: data.data.dosyaId,
-            ad: data.data.ad,
-            boyut: data.data.boyut,
+            id: resData.dosyaId,
+            ad: resData.ad,
+            boyut: resData.boyut,
             tur: dosya.type,
             yuklenmeTarihi: new Date(),
-            metinParcacigiSayisi: data.data.metinParcacigiSayisi,
+            metinParcacigiSayisi: resData.metinParcacigiSayisi,
           };
           onDosyaYuklendi(yuklenenDosya);
         } else {
-          throw new Error(data.error || 'Dosya yüklenirken hata oluştu');
+          const errMsg = data?.error || `Dosya yüklenemedi (HTTP ${yanit.status})`;
+          throw new Error(errMsg);
         }
       } catch (hata) {
         console.error('Dosya yükleme hatası:', hata);
@@ -100,9 +98,6 @@ export function FileUpload({
     [onDosyaYuklendi, setYuklemeDevamEdiyor]
   );
 
-  /**
-   * Sürükle-bırak olayları
-   */
   const suruklemeBitti = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -129,12 +124,8 @@ export function FileUpload({
     setSuruklenmeAktif(false);
   }, []);
 
-  /**
-   * Dosya seçici açma
-   */
   const dosyaSeciciAc = useCallback(() => {
     if (dosyaInputRef.current && !yuklemeDevamEdiyor) {
-      // Küçük bir gecikme ile dosya seçici aç
       setTimeout(() => {
         dosyaInputRef.current?.click();
       }, 50);
@@ -142,22 +133,21 @@ export function FileUpload({
   }, [yuklemeDevamEdiyor]);
 
   return (
-    <div className="w-full">
+    <div className="w-full select-none">
       {/* Sürükle-Bırak Alanı */}
       <div
         className={cn(
-          'relative border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer',
+          'relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer bg-[#FFEBD3]',
           suruklenmeAktif
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50',
-          yuklemeDevamEdiyor && 'pointer-events-none opacity-60'
+            ? 'border-[#9BCEC1] bg-[#FFDBD2]/60 scale-[1.01]'
+            : 'border-[#E69B8B] hover:border-[#9BCEC1] hover:bg-[#FFEBD3]/80',
+          yuklemeDevamEdiyor && 'pointer-events-none opacity-70'
         )}
         onDrop={suruklemeBitti}
         onDragOver={suruklenmeDevamEdiyor}
         onDragEnter={suruklenmeBasladi}
         onDragLeave={suruklenmeAyrilildi}
         onClick={(e) => {
-          // Sadece ana alan tıklandığında, alt elementler değil
           if (e.target === e.currentTarget) {
             dosyaSeciciAc();
           }
@@ -165,85 +155,85 @@ export function FileUpload({
       >
         <div className="space-y-4">
           {yuklemeDevamEdiyor ? (
-            <>
-              <Loader2 className="mx-auto h-12 w-12 text-blue-600 animate-spin" />
+            <div className="py-4 space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-[#9BCEC1] flex items-center justify-center mx-auto shadow-xs">
+                <Loader2 className="h-7 w-7 text-[#2D2320] animate-spin" />
+              </div>
               <div>
-                <p className="text-lg font-medium text-slate-900">
-                  Dosya işleniyor...
+                <p className="text-base font-bold text-[#2D2320]">
+                  Dosyanız İşleniyor...
                 </p>
-                <p className="text-sm text-slate-600">
-                  Dökümanınız analiz ediliyor ve vektöre çevriliyor
+                <p className="text-xs text-[#6B5751] mt-1">
+                  Metinler ayıklanıyor ve vektör parçacıklarına dönüştürülüyor
                 </p>
               </div>
-            </>
+            </div>
           ) : (
             <>
-              <Upload className="mx-auto h-12 w-12 text-slate-400" />
+              <div className="w-14 h-14 rounded-2xl bg-[#FFB6A6] border border-[#E69B8B] flex items-center justify-center mx-auto shadow-xs">
+                <Upload className="h-7 w-7 text-[#2D2320]" />
+              </div>
               <div>
-                <p className="text-lg font-medium text-slate-900">
-                  Dosyayı buraya sürükleyin veya seçin
+                <p className="text-base font-bold text-[#2D2320]">
+                  Dosyayı buraya sürükleyin veya bilgisayarınızdan seçin
                 </p>
-                <p className="text-sm text-slate-600">
-                  PDF, Word (.docx) veya metin (.txt) dosyaları desteklenir
+                <p className="text-xs text-[#6B5751] mt-1">
+                  {SUPPORTED_FILE_TYPES_LABEL} kabul edilir
                 </p>
               </div>
               <Button
                 variant="outline"
-                className="mx-auto"
+                className="bg-[#9BCEC1] hover:bg-[#82B8AB] text-[#2D2320] font-semibold border-[#82B8AB] rounded-xl h-11 px-5 shadow-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   dosyaSeciciAc();
                 }}
               >
-                <File className="mr-2 h-4 w-4" />
+                <File className="mr-2 h-4 w-4 text-[#2D2320]" />
                 Dosya Seç
               </Button>
             </>
           )}
         </div>
 
-        {/* Gizli dosya inputu */}
         <input
           ref={dosyaInputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.docx,.txt"
-          onChange={e => dosyaSecildi(e.target.files)}
+          accept={SUPPORTED_FILE_EXTENSIONS}
+          onChange={(e) => dosyaSecildi(e.target.files)}
           disabled={yuklemeDevamEdiyor}
         />
       </div>
 
-      {/* Desteklenen Dosya Türleri */}
+      {/* Format Rozetleri */}
       <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        <Badge variant="secondary" className="text-xs">
-          📄 PDF
+        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
+          📄 PDF Dökümanı
         </Badge>
-        <Badge variant="secondary" className="text-xs">
+        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
           📝 Word (.docx)
         </Badge>
-        <Badge variant="secondary" className="text-xs">
-          📜 Metin (.txt)
+        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
+          📜 Düz Metin (.txt)
         </Badge>
       </div>
 
       {/* Hata Mesajı */}
       {hataMesaji && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="mt-4 p-3.5 bg-[#FFDBD2] border border-[#E69B8B] rounded-xl flex items-start gap-2.5 shadow-xs">
+          <AlertCircle className="h-5 w-5 text-red-700 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800">Hata</p>
-            <p className="text-sm text-red-700">{hataMesaji}</p>
+            <p className="text-xs font-bold text-red-900">Yükleme Hatası</p>
+            <p className="text-xs font-medium text-red-800 mt-0.5">{hataMesaji}</p>
           </div>
         </div>
       )}
 
       {/* Bilgi Notu */}
-      <div className="mt-4 text-xs text-slate-500 text-center">
-        <p>• Maksimum dosya boyutu: 10MB</p>
-        <p>
-          • Dosyanız güvenli bir şekilde işlenir ve sadece bu oturum için
-          saklanır
-        </p>
+      <div className="mt-4 text-xs text-[#6B5751] text-center space-y-1 font-medium">
+        <p>• Maksimum dosya boyutu: <strong>{MAX_FILE_SIZE_MB_LABEL}</strong></p>
+        <p>• Yüklenen dökümanlar sadece aktif oturumunuz için saklanır.</p>
       </div>
     </div>
   );
