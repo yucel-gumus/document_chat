@@ -172,32 +172,32 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#FFEBD3]">
+    <div className="flex flex-col h-full bg-[#EDF3EE]">
       {/* Mesaj Listesi */}
       <div
         ref={mesajListesiRef}
-        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-[#FFEBD3]"
+        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-[#EDF3EE]"
       >
         {mesajlar.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[320px] text-center p-6 select-none">
             {dosyaYuklendi ? (
               <div className="max-w-md space-y-5 animate-in fade-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 rounded-2xl bg-[#FFB6A6] border border-[#E69B8B] flex items-center justify-center mx-auto shadow-sm">
-                  <Sparkles className="h-8 w-8 text-[#2D2320]" />
+                <div className="w-16 h-16 rounded-2xl bg-[#DCE3EA] border border-[#BCC7D2] flex items-center justify-center mx-auto shadow-sm">
+                  <Sparkles className="h-8 w-8 text-[#EC7D55]" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#2D2320]">
+                  <h3 className="text-xl font-bold text-[#253341]">
                     Dökümanınız Hazır!
                   </h3>
-                  <p className="text-sm text-[#6B5751] mt-1">
+                  <p className="text-sm text-[#3E5164] mt-1">
                     Aşağıdaki örnek sorulardan birine tıklayabilir veya kendi sorunuzu sorabilirsiniz.
                   </p>
                 </div>
 
                 {/* Önerilen Sorular (Prompt Chips) */}
                 <div className="space-y-2 text-left pt-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#6B5751] flex items-center gap-1.5">
-                    <HelpCircle className="h-3.5 w-3.5 text-[#55877A]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#3E5164] flex items-center gap-1.5">
+                    <HelpCircle className="h-3.5 w-3.5 text-[#EC7D55]" />
                     Hızlı Sorular
                   </span>
                   <div className="flex flex-col gap-2">
@@ -206,10 +206,10 @@ export function ChatWindow({
                         key={index}
                         onClick={() => soruGonder(oneri)}
                         disabled={cevapBekleniyor}
-                        className="group p-3 rounded-xl bg-[#FFB6A6]/40 hover:bg-[#FFB6A6] border border-[#E69B8B] text-[#2D2320] text-xs font-semibold text-left transition-all duration-200 flex items-center justify-between shadow-xs hover:shadow-sm"
+                        className="group p-3 rounded-xl bg-[#F5F9F5] hover:bg-[#DBE6DD] border border-[#BCC7D2] hover:border-[#EC7D55] text-[#253341] text-xs font-semibold text-left transition-all duration-200 flex items-center justify-between shadow-xs hover:shadow-sm"
                       >
                         <span>{oneri}</span>
-                        <ArrowRight className="h-3.5 w-3.5 text-[#55877A] group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="h-3.5 w-3.5 text-[#3E5164] group-hover:text-[#AB421C] group-hover:translate-x-0.5 transition-all duration-200" />
                       </button>
                     ))}
                   </div>
@@ -217,13 +217,13 @@ export function ChatWindow({
               </div>
             ) : (
               <div className="max-w-xs space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#FFB6A6] border border-[#E69B8B] flex items-center justify-center mx-auto">
-                  <Bot className="h-8 w-8 text-[#6B5751]" />
+                <div className="w-16 h-16 rounded-2xl bg-[#DCE3EA] border border-[#BCC7D2] flex items-center justify-center mx-auto">
+                  <Bot className="h-8 w-8 text-[#3E5164]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#2D2320]">
+                <h3 className="text-lg font-bold text-[#253341]">
                   Sohbete Başlamak İçin Döküman Yükleyin
                 </h3>
-                <p className="text-xs text-[#6B5751]">
+                <p className="text-xs text-[#3E5164]">
                   Sol paneldeki &quot;Döküman Yükle&quot; butonunu kullanabilirsiniz.
                 </p>
               </div>
@@ -238,19 +238,19 @@ export function ChatWindow({
             {/* Streaming Mesaj */}
             {streamingMesaj && (
               <div className="flex justify-start animate-in fade-in duration-200">
-                <div className="max-w-[85%] bg-[#FFEBD3] border border-[#E69B8B] text-[#2D2320] rounded-2xl rounded-bl-xs px-4 py-3.5 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#E69B8B]/40">
-                    <span className="bg-[#9BCEC1] text-[#2D2320] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                      <Bot className="h-3 w-3 text-[#2D2320]" />
+                <div className="max-w-[85%] bg-[#DCE3EA] border border-[#BCC7D2] text-[#253341] rounded-2xl rounded-bl-xs px-4 py-3.5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#BCC7D2]">
+                    <span className="bg-[#DBE6DD] text-[#253341] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                      <Bot className="h-3 w-3 text-[#253341]" />
                       Kensai dökümanı analiz ediyor...
                     </span>
                     <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-[#9BCEC1] rounded-full animate-ping"></div>
+                      <div className="w-1.5 h-1.5 bg-[#EC7D55] rounded-full animate-ping"></div>
                     </div>
                   </div>
-                  <div className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-[#2D2320]">
+                  <div className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-[#253341]">
                     {streamingMesaj}
-                    <span className="inline-block w-2 h-4 bg-[#9BCEC1] animate-pulse ml-1 align-middle rounded-xs"></span>
+                    <span className="inline-block w-2 h-4 bg-[#EC7D55] animate-pulse ml-1 align-middle rounded-xs"></span>
                   </div>
                 </div>
               </div>
@@ -261,10 +261,10 @@ export function ChatWindow({
         {/* Loading Indicator */}
         {cevapBekleniyor && !streamingMesaj && (
           <div className="flex justify-start animate-in fade-in duration-200">
-            <div className="bg-[#FFEBD3] border border-[#E69B8B] rounded-2xl px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[#6B5751]">
-                <Loader2 className="h-4 w-4 animate-spin text-[#55877A]" />
-                <span className="text-xs font-semibold text-[#2D2320]">
+            <div className="bg-[#DCE3EA] border border-[#BCC7D2] rounded-2xl px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-[#3E5164]">
+                <Loader2 className="h-4 w-4 animate-spin text-[#EC7D55]" />
+                <span className="text-xs font-semibold text-[#253341]">
                   Kensai dökümanı analiz ediyor...
                 </span>
               </div>
@@ -274,7 +274,7 @@ export function ChatWindow({
       </div>
 
       {/* Mesaj Gönderme Formu */}
-      <div className="p-4 border-t border-[#E69B8B] bg-[#FFB6A6]/40 backdrop-blur-sm">
+      <div className="p-4 border-t border-[#BCC7D2] bg-[#DCE3EA]/75 backdrop-blur-sm">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -293,24 +293,24 @@ export function ChatWindow({
             onChange={(e) => setSoruMetni(e.target.value)}
             onKeyDown={enterTusunaBasildi}
             disabled={!dosyaYuklendi || cevapBekleniyor}
-            className="flex-1 bg-[#FFEBD3] border-[#E69B8B] focus-visible:ring-[#9BCEC1] text-[#2D2320] placeholder:text-[#6B5751] h-12 rounded-xl text-sm shadow-xs font-medium"
+            className="flex-1 bg-[#F5F9F5] border-[#BCC7D2] focus-visible:ring-[#EC7D55] focus-visible:border-[#EC7D55] text-[#253341] placeholder:text-[#3E5164]/75 h-12 rounded-xl text-sm shadow-xs font-medium transition-all duration-200"
           />
           <Button
             type="submit"
             disabled={!dosyaYuklendi || !soruMetni.trim() || cevapBekleniyor}
-            className="h-12 w-12 rounded-xl bg-[#9BCEC1] hover:bg-[#82B8AB] text-[#2D2320] border border-[#82B8AB] shadow-xs flex-shrink-0"
+            className="h-12 w-12 rounded-xl bg-[#EC7D55] hover:bg-[#AB421C] text-[#253341] hover:text-[#F5F9F5] border border-[#EC7D55] hover:border-[#AB421C] shadow-xs flex-shrink-0 transition-all duration-200"
             size="icon"
           >
             {cevapBekleniyor ? (
-              <Loader2 className="h-5 w-5 animate-spin text-[#2D2320]" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-5 w-5 text-[#2D2320]" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </form>
 
         {dosyaYuklendi && (
-          <p className="text-[11px] text-[#6B5751] font-medium text-center mt-2">
+          <p className="text-[11px] text-[#3E5164] font-medium text-center mt-2">
             💡 İpucu: Soruyu Enter tuşu ile gönderebilirsiniz.
           </p>
         )}

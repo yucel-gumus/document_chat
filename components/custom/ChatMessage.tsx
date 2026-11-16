@@ -9,7 +9,7 @@ interface ChatMessageProps {
 
 /**
  * Tek bir sohbet mesajını gösteren bileşen
- * 60-30-10 Renk Kurallarına göre (Dominant: #FFEBD3, Sekonder: #FFB6A6, Aksan: #9BCEC1)
+ * İpek Küllü Arduvaz 60-30-10 Tasarım Sistemi
  */
 export function ChatMessage({ mesaj }: ChatMessageProps) {
   const kullaniciMesajiMi = mesaj.tur === 'kullanici';
@@ -23,36 +23,36 @@ export function ChatMessage({ mesaj }: ChatMessageProps) {
     >
       <div
         className={cn(
-          'max-w-[85%] rounded-2xl px-4 py-3.5 shadow-sm border transition-all',
+          'max-w-[85%] rounded-2xl px-4 py-3.5 shadow-sm border transition-all duration-200',
           kullaniciMesajiMi
-            ? 'bg-[#FFB6A6] border-[#E69B8B] text-[#2D2320] rounded-br-xs'
-            : 'bg-[#FFEBD3] border-[#E69B8B] text-[#2D2320] rounded-bl-xs'
+            ? 'bg-[#F2A488]/45 border-[#EC7D55]/60 text-[#253341] rounded-br-xs'
+            : 'bg-[#DCE3EA] border-[#BCC7D2] text-[#253341] rounded-bl-xs'
         )}
       >
         {/* Mesaj Başlığı & Rozet */}
-        <div className="flex items-center justify-between gap-3 mb-2 pb-1.5 border-b border-[#E69B8B]/40">
+        <div className="flex items-center justify-between gap-3 mb-2 pb-1.5 border-b border-[#BCC7D2]/70">
           <Badge
             className={cn(
               'text-xs font-semibold px-2.5 py-0.5 border-none shadow-none flex items-center gap-1.5',
               kullaniciMesajiMi
-                ? 'bg-[#FFEBD3] text-[#2D2320]'
-                : 'bg-[#9BCEC1] text-[#2D2320]'
+                ? 'bg-[#F5F9F5] text-[#253341]'
+                : 'bg-[#DBE6DD] text-[#253341]'
             )}
           >
             {kullaniciMesajiMi ? (
               <>
-                <User className="h-3 w-3 text-[#2D2320]" />
+                <User className="h-3 w-3 text-[#253341]" />
                 <span>Siz</span>
               </>
             ) : (
               <>
-                <Bot className="h-3 w-3 text-[#2D2320]" />
+                <Bot className="h-3 w-3 text-[#253341]" />
                 <span>Kensai</span>
               </>
             )}
           </Badge>
 
-          <span className="text-[11px] font-medium text-[#6B5751]">
+          <span className="text-[11px] font-medium text-[#3E5164]">
             {mesaj.zaman.toLocaleTimeString('tr-TR', {
               hour: '2-digit',
               minute: '2-digit',
@@ -61,7 +61,7 @@ export function ChatMessage({ mesaj }: ChatMessageProps) {
         </div>
 
         {/* Mesaj İçeriği */}
-        <div className="text-sm leading-relaxed whitespace-pre-wrap font-medium text-[#2D2320]">
+        <div className="text-sm leading-relaxed whitespace-pre-wrap font-medium text-[#253341]">
           {mesaj.icerik}
         </div>
       </div>

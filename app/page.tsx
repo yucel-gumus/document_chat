@@ -184,29 +184,29 @@ export default function AnaSayfa() {
   );
 
   return (
-    <div className="h-screen w-screen bg-[#FFEBD3] flex flex-col overflow-hidden font-sans text-[#2D2320]">
+    <div className="h-screen w-screen bg-[#EDF3EE] flex flex-col overflow-hidden font-sans text-[#253341]">
       {/* Dynamic Header Navbar */}
-      <header className="h-16 border-b border-[#E69B8B] bg-[#FFB6A6] px-4 lg:px-6 flex items-center justify-between flex-shrink-0 z-30 shadow-xs">
+      <header className="h-16 border-b border-[#BCC7D2] bg-[#DCE3EA] px-4 lg:px-6 flex items-center justify-between flex-shrink-0 z-30 shadow-xs">
         <div className="flex items-center gap-3">
           {/* Mobile Sidebar Trigger */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setMobileSidebarAcik(!mobileSidebarAcik)}
-            className="lg:hidden h-10 w-10 text-[#2D2320] hover:bg-[#FFEBD3] rounded-xl"
+            className="lg:hidden h-10 w-10 text-[#253341] hover:bg-[#DBE6DD] rounded-xl transition-colors duration-200"
           >
             {mobileSidebarAcik ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
 
           {/* App Logo & Title */}
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#9BCEC1] border border-[#82B8AB] flex items-center justify-center shadow-xs">
-              <MessageCircle className="h-5 w-5 text-[#2D2320]" />
+            <div className="w-9 h-9 rounded-xl bg-[#EC7D55] border border-[#AB421C]/30 flex items-center justify-center shadow-xs">
+              <MessageCircle className="h-5 w-5 text-[#253341]" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-[#2D2320] leading-tight flex items-center gap-2">
+              <h1 className="font-bold text-lg text-[#253341] leading-tight flex items-center gap-2">
                 <span>Döküman Sohbet</span>
-                <span className="hidden sm:inline-flex text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-[#9BCEC1] text-[#2D2320]">
+                <span className="hidden sm:inline-flex text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-[#F2A488] text-[#253341]">
                   KENSAI
                 </span>
               </h1>
@@ -217,28 +217,28 @@ export default function AnaSayfa() {
         {/* Header Right Status Bar */}
         <div className="flex items-center gap-3">
           {veriKontrolEdiliyor ? (
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#6B5751]">
-              <Loader2 className="h-4 w-4 animate-spin text-[#2D2320]" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#3E5164]">
+              <Loader2 className="h-4 w-4 animate-spin text-[#253341]" />
               <span className="hidden sm:inline">Kontrol ediliyor...</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFEBD3] border border-[#E69B8B] text-xs font-semibold text-[#2D2320]">
-                <Database className="h-3.5 w-3.5 text-[#55877A]" />
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F5F9F5] border border-[#BCC7D2] text-xs font-semibold text-[#253341]">
+                <Database className="h-3.5 w-3.5 text-[#3E5164]" />
                 <span>
                   {dosyaYuklendi
                     ? `${oturumParcaSayisi} Vektör Parçası`
                     : 'Henüz Veri Yok'}
                 </span>
                 <span
-                  className={`w-2 h-2 rounded-full ${dosyaYuklendi ? 'bg-[#9BCEC1]' : 'bg-[#E69B8B]'
+                  className={`w-2 h-2 rounded-full ${dosyaYuklendi ? 'bg-[#EC7D55]' : 'bg-[#BCC7D2]'
                     }`}
                 />
               </div>
 
               <Button
                 onClick={() => setUploadModalAcik(true)}
-                className="bg-[#9BCEC1] hover:bg-[#82B8AB] text-[#2D2320] font-semibold text-xs h-9 px-3.5 rounded-xl border border-[#82B8AB] shadow-xs flex items-center gap-1.5"
+                className="bg-[#EC7D55] hover:bg-[#AB421C] text-[#253341] hover:text-[#F5F9F5] font-semibold text-xs h-9 px-3.5 rounded-xl border border-[#EC7D55] hover:border-[#AB421C] shadow-xs flex items-center gap-1.5 transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden xs:inline">Döküman Ekle</span>
@@ -264,10 +264,10 @@ export default function AnaSayfa() {
         {mobileSidebarAcik && (
           <div className="lg:hidden absolute inset-0 z-40 flex">
             <div
-              className="fixed inset-0 bg-[#2D2320]/50 backdrop-blur-xs"
+              className="fixed inset-0 bg-[#253341]/55 backdrop-blur-xs"
               onClick={() => setMobileSidebarAcik(false)}
             />
-            <div className="relative w-80 max-w-[85vw] h-full bg-[#FFB6A6] shadow-2xl z-50 animate-in slide-in-from-left duration-200">
+            <div className="relative w-80 max-w-[85vw] h-full bg-[#DCE3EA] shadow-2xl z-50 animate-in slide-in-from-left duration-200">
               <DocumentSidebar
                 yuklenenDosyalar={yuklenenDosyalar}
                 dosyaSil={dosyaSil}
@@ -282,7 +282,7 @@ export default function AnaSayfa() {
         )}
 
         {/* Central Chat View */}
-        <main className="flex-1 flex flex-col h-full bg-[#FFEBD3] relative">
+        <main className="flex-1 flex flex-col h-full bg-[#EDF3EE] relative">
           <ChatWindow
             mesajlar={chatMesajlari}
             onYeniMesaj={yeniMesajEkle}

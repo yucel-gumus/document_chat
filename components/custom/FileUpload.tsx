@@ -137,10 +137,10 @@ export function FileUpload({
       {/* Sürükle-Bırak Alanı */}
       <div
         className={cn(
-          'relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer bg-[#FFEBD3]',
+          'relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer bg-[#F5F9F5]',
           suruklenmeAktif
-            ? 'border-[#9BCEC1] bg-[#FFDBD2]/60 scale-[1.01]'
-            : 'border-[#E69B8B] hover:border-[#9BCEC1] hover:bg-[#FFEBD3]/80',
+            ? 'border-[#EC7D55] bg-[#DBE6DD] scale-[1.01]'
+            : 'border-[#BCC7D2] hover:border-[#EC7D55] hover:bg-[#DBE6DD]/45',
           yuklemeDevamEdiyor && 'pointer-events-none opacity-70'
         )}
         onDrop={suruklemeBitti}
@@ -156,40 +156,40 @@ export function FileUpload({
         <div className="space-y-4">
           {yuklemeDevamEdiyor ? (
             <div className="py-4 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#9BCEC1] flex items-center justify-center mx-auto shadow-xs">
-                <Loader2 className="h-7 w-7 text-[#2D2320] animate-spin" />
+              <div className="w-14 h-14 rounded-2xl bg-[#EC7D55] flex items-center justify-center mx-auto shadow-xs">
+                <Loader2 className="h-7 w-7 text-[#253341] animate-spin" />
               </div>
               <div>
-                <p className="text-base font-bold text-[#2D2320]">
+                <p className="text-base font-bold text-[#253341]">
                   Dosyanız İşleniyor...
                 </p>
-                <p className="text-xs text-[#6B5751] mt-1">
+                <p className="text-xs text-[#3E5164] mt-1">
                   Metinler ayıklanıyor ve vektör parçacıklarına dönüştürülüyor
                 </p>
               </div>
             </div>
           ) : (
             <>
-              <div className="w-14 h-14 rounded-2xl bg-[#FFB6A6] border border-[#E69B8B] flex items-center justify-center mx-auto shadow-xs">
-                <Upload className="h-7 w-7 text-[#2D2320]" />
+              <div className="w-14 h-14 rounded-2xl bg-[#DCE3EA] border border-[#BCC7D2] flex items-center justify-center mx-auto shadow-xs">
+                <Upload className="h-7 w-7 text-[#253341]" />
               </div>
               <div>
-                <p className="text-base font-bold text-[#2D2320]">
+                <p className="text-base font-bold text-[#253341]">
                   Dosyayı buraya sürükleyin veya bilgisayarınızdan seçin
                 </p>
-                <p className="text-xs text-[#6B5751] mt-1">
+                <p className="text-xs text-[#3E5164] mt-1">
                   {SUPPORTED_FILE_TYPES_LABEL} kabul edilir
                 </p>
               </div>
               <Button
                 variant="outline"
-                className="bg-[#9BCEC1] hover:bg-[#82B8AB] text-[#2D2320] font-semibold border-[#82B8AB] rounded-xl h-11 px-5 shadow-xs"
+                className="bg-[#EC7D55] hover:bg-[#AB421C] text-[#253341] hover:text-[#F5F9F5] font-semibold border-[#EC7D55] hover:border-[#AB421C] rounded-xl h-11 px-5 shadow-xs transition-all duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   dosyaSeciciAc();
                 }}
               >
-                <File className="mr-2 h-4 w-4 text-[#2D2320]" />
+                <File className="mr-2 h-4 w-4" />
                 Dosya Seç
               </Button>
             </>
@@ -208,31 +208,31 @@ export function FileUpload({
 
       {/* Format Rozetleri */}
       <div className="mt-4 flex flex-wrap gap-2 justify-center">
-        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
+        <Badge className="bg-[#DCE3EA] text-[#253341] border-[#BCC7D2] text-xs font-semibold px-3 py-1">
           📄 PDF Dökümanı
         </Badge>
-        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
+        <Badge className="bg-[#DCE3EA] text-[#253341] border-[#BCC7D2] text-xs font-semibold px-3 py-1">
           📝 Word (.docx)
         </Badge>
-        <Badge className="bg-[#FFB6A6] text-[#2D2320] border-[#E69B8B] text-xs font-semibold px-3 py-1">
+        <Badge className="bg-[#DCE3EA] text-[#253341] border-[#BCC7D2] text-xs font-semibold px-3 py-1">
           📜 Düz Metin (.txt)
         </Badge>
       </div>
 
       {/* Hata Mesajı */}
       {hataMesaji && (
-        <div className="mt-4 p-3.5 bg-[#FFDBD2] border border-[#E69B8B] rounded-xl flex items-start gap-2.5 shadow-xs">
-          <AlertCircle className="h-5 w-5 text-red-700 flex-shrink-0 mt-0.5" />
+        <div className="mt-4 p-3.5 bg-[#F2A488]/25 border border-[#AB421C] rounded-xl flex items-start gap-2.5 shadow-xs">
+          <AlertCircle className="h-5 w-5 text-[#AB421C] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-red-900">Yükleme Hatası</p>
-            <p className="text-xs font-medium text-red-800 mt-0.5">{hataMesaji}</p>
+            <p className="text-xs font-bold text-[#AB421C]">Yükleme Hatası</p>
+            <p className="text-xs font-medium text-[#253341] mt-0.5">{hataMesaji}</p>
           </div>
         </div>
       )}
 
       {/* Bilgi Notu */}
-      <div className="mt-4 text-xs text-[#6B5751] text-center space-y-1 font-medium">
-        <p>• Maksimum dosya boyutu: <strong>{MAX_FILE_SIZE_MB_LABEL}</strong></p>
+      <div className="mt-4 text-xs text-[#3E5164] text-center space-y-1 font-medium">
+        <p>• Maksimum dosya boyutu: <strong className="text-[#253341]">{MAX_FILE_SIZE_MB_LABEL}</strong></p>
         <p>• Yüklenen dökümanlar sadece aktif oturumunuz için saklanır.</p>
       </div>
     </div>
