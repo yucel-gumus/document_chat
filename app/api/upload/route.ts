@@ -19,6 +19,8 @@ import {
 import { gatewayFetch } from '@/lib/gateway';
 import { attachTenantCookie, getOrCreateTenantId } from '@/lib/tenant';
 
+export const maxDuration = 60;
+
 async function chunkiPythonAPIyeGonder(
   chunkId: string,
   metin: string,

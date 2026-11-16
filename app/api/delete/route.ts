@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { gatewayFetch, handleGatewayErrorResponse } from '@/lib/gateway';
 import { requireTenantId } from '@/lib/tenant';
 
+export const maxDuration = 60;
+
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();

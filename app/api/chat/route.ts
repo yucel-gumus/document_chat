@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { gatewayFetch, handleGatewayErrorResponse } from '@/lib/gateway';
 import { requireTenantId } from '@/lib/tenant';
 
+export const maxDuration = 60;
+
 function resolveDosyaIds(body: {
   dosyaId?: string;
   dosyaIds?: string[];
