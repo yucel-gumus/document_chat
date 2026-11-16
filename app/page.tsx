@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { DocumentSidebar } from '@/components/custom/DocumentSidebar';
 import { FileUploadModal } from '@/components/custom/FileUploadModal';
@@ -15,8 +15,11 @@ import {
   Plus,
 } from 'lucide-react';
 
+const FILES_STORAGE_KEY = 'document-chat-files-v1';
+
 export default function AnaSayfa() {
   const [yuklenenDosyalar, setYuklenenDosyalar] = useState<IYuklenenDosya[]>([]);
+  const hasHydratedFilesRef = useRef(false);
   const [chatMesajlari, setChatMesajlari] = useState<IChatMesaji[]>([]);
   const [yuklemeDurumu, setYuklemeDurumu] = useState<boolean>(false);
   const [veriKontrolEdiliyor, setVeriKontrolEdiliyor] = useState<boolean>(true);
@@ -32,13 +35,41 @@ export default function AnaSayfa() {
   useEffect(() => {
     fetch('/api/session', { credentials: 'include' }).catch(() => undefined);
 
+    let restored: IYuklenenDosya[] = [];
+    try {
+      const saved = window.localStorage.getItem(FILES_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          restored = parsed.filter(
+            (item): item is IYuklenenDosya =>
+              Boolean(item && typeof item.id === 'string' && typeof item.ad === 'string'),
+          );
+          if (restored.length > 0) {
+            setYuklenenDosyalar(restored);
+          }
+        }
+      }
+    } catch {
+      // Ignore corrupt localStorage entries
+    } finally {
+      hasHydratedFilesRef.current = true;
+    }
+
     const pineconeVeriKontrolEt = async () => {
       try {
         setVeriKontrolEdiliyor(true);
         const response = await fetch('/api/check-data');
         const data = await response.json();
 
-        if (data.success) {
+        const restoredChunks = restored.reduce((t, d) => t + (Number(d.metinParcacigiSayisi) || 0), 0);
+        if (restored.length > 0) {
+          setPineconeVeriDurumu({
+            hasData: true,
+            totalChunks: restoredChunks,
+            message: 'Önceki oturum dökümanları geri yüklendi.',
+          });
+        } else if (data.success) {
           setPineconeVeriDurumu({
             hasData: false,
             totalChunks: 0,
@@ -65,6 +96,15 @@ export default function AnaSayfa() {
 
     pineconeVeriKontrolEt();
   }, []);
+
+  useEffect(() => {
+    if (!hasHydratedFilesRef.current) return;
+    try {
+      window.localStorage.setItem(FILES_STORAGE_KEY, JSON.stringify(yuklenenDosyalar));
+    } catch {
+      // Ignore storage quota / private mode errors
+    }
+  }, [yuklenenDosyalar]);
 
   const dosyaSil = async (dosya: IYuklenenDosya) => {
     const onay = confirm(`"${dosya.ad}" dosyasını silmek istediğinize emin misiniz?`);
